@@ -1,6 +1,5 @@
 import { BasePage } from '../core/BasePage';
 import { Page } from '@playwright/test';
-import { TestConfig } from '../config/testConfig';
 
 export class HomePage extends BasePage {
   private readonly SELECTORS = {
@@ -23,22 +22,16 @@ export class HomePage extends BasePage {
   }
 
   async clickDigitalDownloads(): Promise<void> {
-    const digitalDownloadsLink = this.page.locator(this.SELECTORS.DIGITAL_DOWNLOADS_LINK).first();
-    await digitalDownloadsLink.waitFor({ state: 'visible', timeout: TestConfig.timeouts.default });
-    await digitalDownloadsLink.click({ timeout: TestConfig.timeouts.default });
+    await this.createElement(this.SELECTORS.DIGITAL_DOWNLOADS_LINK).waitForVisibility();
+    await this.createElement(this.SELECTORS.DIGITAL_DOWNLOADS_LINK).click();
   }
 
   async getHeaderEmail(): Promise<string> {
-    const accountLink = this.page.locator(this.SELECTORS.ACCOUNT_EMAIL).first();
+    await this.createElement(this.SELECTORS.ACCOUNT_EMAIL).waitForVisibility();
     
-    await accountLink.waitFor({ state: 'visible', timeout: TestConfig.timeouts.default });
-    
-    const emailText = await accountLink.textContent();
-    if (!emailText) {
-      throw new Error('Account link found but no email text content');
-    }
-
+    const emailText = await this.createElement(this.SELECTORS.ACCOUNT_EMAIL).getText();
     const trimmedEmail = emailText.trim();
+    
     if (!this.isValidEmail(trimmedEmail)) {
       throw new Error(`Invalid email format found in header: ${trimmedEmail}`);
     }

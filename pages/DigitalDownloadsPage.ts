@@ -28,7 +28,6 @@ export class DigitalDownloadsPage extends BasePage {
 
     const productId = await selectedProduct.getAttribute('data-productid');
     if (!productId) {
-      Logger.error('Could not extract product ID');
       throw new Error('Could not extract product ID');
     }
 
@@ -37,7 +36,6 @@ export class DigitalDownloadsPage extends BasePage {
 
     const productName = await productLink.textContent({ timeout: TestConfig.timeouts.short });
     if (!productName || !productName.trim()) {
-      Logger.error('Could not extract product name');
       throw new Error('Could not extract product name');
     }
 
@@ -50,17 +48,7 @@ export class DigitalDownloadsPage extends BasePage {
   async addProductToCart(productId: string): Promise<void> {
     Logger.action(`Locating product with ID: ${productId}`);
     const selectedProduct = this.page.locator(`${this.SELECTORS.PRODUCT_ITEM}[data-productid="${productId}"]`);
-
-    if (await selectedProduct.count() === 0) {
-      Logger.error(`Product ${productId} not found`);
-      throw new Error(`Product ${productId} not found`);
-    }
-
     const addToCartButton = selectedProduct.locator('input[value="Add to cart"]');
-    if (await addToCartButton.count() === 0) {
-      Logger.error('Add to Cart button not found');
-      throw new Error('Add to Cart button not found');
-    }
 
     Logger.action('Waiting for Add to Cart button to be visible');
     await addToCartButton.waitFor({ state: 'visible', timeout: TestConfig.timeouts.default });

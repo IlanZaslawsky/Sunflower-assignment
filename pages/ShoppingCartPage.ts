@@ -6,8 +6,7 @@ import { Logger } from '../utils/logger';
 export class ShoppingCartPage extends BasePage implements IValidatable {
   private readonly SELECTORS = {
     CART_ITEM_ROW: '.cart-item-row',
-    PRODUCT_NAME: '.product-name',
-    CART_EMPTY_MSG: '.no-data',
+    PRODUCT_NAME: 'a.product-name',
   };
 
   private lastValidationError: string | null = null;
@@ -17,30 +16,19 @@ export class ShoppingCartPage extends BasePage implements IValidatable {
   }
 
   async isCartEmpty(): Promise<boolean> {
-    try {
-      return await this.page.locator(this.SELECTORS.CART_EMPTY_MSG).isVisible();
-    } catch {
-      return false;
-    }
+    const count = await this.getCartItemCount();
+    return count === 0;
   }
 
   async getCartProductNames(): Promise<string[]> {
-    await this.createElement(this.SELECTORS.CART_ITEM_ROW).waitForVisibility();
+    await this.page.locator(this.SELECTORS.CART_ITEM_ROW).first().waitFor({ state: 'visible' });
 
-    const productNames = await this.page.locator(this.SELECTORS.PRODUCT_NAME).all();
+    const productNames = await this.page.locator(this.SELECTORS.PRODUCT_NAME).allTextContents();
     if (productNames.length === 0) {
       throw new Error('No products found in shopping cart');
     }
 
-    const names: string[] = [];
-    for (const product of productNames) {
-      const text = await product.textContent();
-      if (text) {
-        names.push(text.trim());
-      }
-    }
-
-    return names;
+    return productNames.map(name => name.trim()).filter(name => name.length > 0);
   }
 
   async verifyProductInCart(expectedProductName: string): Promise<boolean> {
@@ -49,16 +37,11 @@ export class ShoppingCartPage extends BasePage implements IValidatable {
     Logger.data('Cart Products', cartProductNames.join(', '));
     const trimmedExpected = expectedProductName.trim();
 
-    // Strategy 1: Exact match
     for (const name of cartProductNames) {
       if (name === trimmedExpected) {
         Logger.success(`Exact match found: "${name}"`);
         return true;
       }
-    }
-
-    // Strategy 2: Partial match
-    for (const name of cartProductNames) {
       if (name.includes(trimmedExpected)) {
         Logger.success(`Partial match found: "${name}" contains "${trimmedExpected}"`);
         return true;
@@ -71,27 +54,16 @@ export class ShoppingCartPage extends BasePage implements IValidatable {
   }
 
   async getCartItemCount(): Promise<number> {
-    try {
-      return await this.page.locator(this.SELECTORS.CART_ITEM_ROW).count();
-    } catch {
-      return 0;
-    }
+    return await this.page.locator(this.SELECTORS.CART_ITEM_ROW).count();
   }
 
   async validate(): Promise<boolean> {
     try {
-      const isEmpty = await this.isCartEmpty();
-      if (isEmpty) {
+      const itemCount = await this.getCartItemCount();
+      if (itemCount === 0) {
         this.lastValidationError = 'Shopping cart is empty';
         return false;
       }
-
-      const itemCount = await this.getCartItemCount();
-      if (itemCount === 0) {
-        this.lastValidationError = 'No items in cart';
-        return false;
-      }
-
       return true;
     } catch (error) {
       this.lastValidationError = `Validation failed: ${error}`;

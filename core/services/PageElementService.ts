@@ -42,11 +42,7 @@ export class PageElementService implements IPageElement {
   }
 
   async isVisible(): Promise<boolean> {
-    try {
-      return await this.locator.isVisible();
-    } catch {
-      return false;
-    }
+    return await this.locator.isVisible();
   }
 
   async waitForVisibility(timeout: number = this.DEFAULT_TIMEOUT): Promise<void> {
