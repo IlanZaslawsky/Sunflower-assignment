@@ -1,6 +1,7 @@
 import { BasePage } from '../core/BasePage';
 import { Page } from '@playwright/test';
 import { IValidatable } from '../core/interfaces/IValidatable';
+import { Logger } from '../utils/logger';
 
 export class ShoppingCartPage extends BasePage implements IValidatable {
   private readonly SELECTORS = {
@@ -43,12 +44,15 @@ export class ShoppingCartPage extends BasePage implements IValidatable {
   }
 
   async verifyProductInCart(expectedProductName: string): Promise<boolean> {
+    Logger.action(`Verifying product "${expectedProductName}" in cart`);
     const cartProductNames = await this.getCartProductNames();
+    Logger.data('Cart Products', cartProductNames.join(', '));
     const trimmedExpected = expectedProductName.trim();
 
     // Strategy 1: Exact match
     for (const name of cartProductNames) {
       if (name === trimmedExpected) {
+        Logger.success(`Exact match found: "${name}"`);
         return true;
       }
     }
@@ -56,11 +60,13 @@ export class ShoppingCartPage extends BasePage implements IValidatable {
     // Strategy 2: Partial match
     for (const name of cartProductNames) {
       if (name.includes(trimmedExpected)) {
+        Logger.success(`Partial match found: "${name}" contains "${trimmedExpected}"`);
         return true;
       }
     }
 
     this.lastValidationError = `Product "${trimmedExpected}" not found in cart. Cart contains: ${cartProductNames.join(', ')}`;
+    Logger.error(this.lastValidationError);
     throw new Error(this.lastValidationError);
   }
 
