@@ -11,6 +11,7 @@ export class RegisterPage extends BasePage implements IValidatable {
     CONFIRM_PASSWORD: 'input[id="ConfirmPassword"]',
     REGISTER_BTN: 'input[id="register-button"]',
     RESULT_MESSAGE: '.result',
+    CONTINUE_BTN: 'input[value="Continue"]',
   };
 
   private registrationEmail: string | null = null;
@@ -40,6 +41,10 @@ export class RegisterPage extends BasePage implements IValidatable {
     await this.createElement(this.SELECTORS.RESULT_MESSAGE).waitForVisibility();
   }
 
+  async clickContinue(): Promise<void> {
+    await this.createElement(this.SELECTORS.CONTINUE_BTN).click();
+  }
+
   async validate(): Promise<boolean> {
     try {
       if (!this.registrationEmail) {
@@ -62,12 +67,5 @@ export class RegisterPage extends BasePage implements IValidatable {
 
   getValidationError(): string | null {
     return this.validationError;
-  }
-
-  getRegistrationEmail(): string {
-    if (!this.registrationEmail) {
-      throw new Error('No registration email found');
-    }
-    return this.registrationEmail;
   }
 }

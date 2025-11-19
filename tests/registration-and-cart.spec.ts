@@ -28,7 +28,10 @@ test.describe('User Registration and Shopping Cart Flow', () => {
       throw new Error(`Registration validation failed: ${registerPage.getValidationError()}`);
     }
 
-    // Step 6-7: Verify email in header
+    // Step 6: Click Continue button
+    await registerPage.clickContinue();
+
+    // Step 7: Verify email in header
     const headerEmail = await homePage.getHeaderEmail();
     expect(headerEmail).toBe(testData.email);
 

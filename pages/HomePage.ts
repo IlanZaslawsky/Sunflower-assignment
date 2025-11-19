@@ -1,5 +1,6 @@
 import { BasePage } from '../core/BasePage';
 import { Page } from '@playwright/test';
+import { TestConfig } from '../config/testConfig';
 
 export class HomePage extends BasePage {
   private readonly SELECTORS = {
@@ -22,30 +23,27 @@ export class HomePage extends BasePage {
   }
 
   async clickDigitalDownloads(): Promise<void> {
-    // Handle multiple Digital Downloads links - select first
-    const links = await this.page.locator(this.SELECTORS.DIGITAL_DOWNLOADS_LINK).all();
-    if (links.length === 0) {
-      throw new Error('No Digital Downloads link found');
-    }
-    await links[0].click({ timeout: 10000 });
+    const digitalDownloadsLink = this.page.locator(this.SELECTORS.DIGITAL_DOWNLOADS_LINK).first();
+    await digitalDownloadsLink.waitFor({ state: 'visible', timeout: TestConfig.timeouts.default });
+    await digitalDownloadsLink.click({ timeout: TestConfig.timeouts.default });
   }
 
   async getHeaderEmail(): Promise<string> {
-    const allAccountLinks = await this.page.locator(this.SELECTORS.ACCOUNT_EMAIL).all();
-    if (allAccountLinks.length === 0) {
-      throw new Error('No account email found in header');
+    const accountLink = this.page.locator(this.SELECTORS.ACCOUNT_EMAIL).first();
+    
+    await accountLink.waitFor({ state: 'visible', timeout: TestConfig.timeouts.default });
+    
+    const emailText = await accountLink.textContent();
+    if (!emailText) {
+      throw new Error('Account link found but no email text content');
     }
 
-    for (const link of allAccountLinks) {
-      const text = await link.textContent();
-      if (text && text.includes('@')) {
-        const trimmed = text.trim();
-        if (this.isValidEmail(trimmed)) {
-          return trimmed;
-        }
-      }
+    const trimmedEmail = emailText.trim();
+    if (!this.isValidEmail(trimmedEmail)) {
+      throw new Error(`Invalid email format found in header: ${trimmedEmail}`);
     }
-    throw new Error('No valid email found in header account links');
+
+    return trimmedEmail;
   }
 
   private isValidEmail(email: string): boolean {

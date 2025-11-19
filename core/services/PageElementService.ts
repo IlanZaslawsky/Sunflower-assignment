@@ -1,9 +1,10 @@
 import { Page, Locator } from '@playwright/test';
 import { IPageElement } from '../interfaces/IPageElement';
+import { TestConfig } from '../../config/testConfig';
 
 export class PageElementService implements IPageElement {
   private locator: Locator;
-  private readonly DEFAULT_TIMEOUT = 10000;
+  private readonly DEFAULT_TIMEOUT = TestConfig.timeouts.default;
 
   constructor(
     private page: Page,
